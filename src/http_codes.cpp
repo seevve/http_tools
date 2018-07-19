@@ -1,8 +1,20 @@
 #include "http_codes.h"
 
-#include <map>
+#include <unordered_map>
 #include <exception>
 #include <sstream>
+
+namespace std {
+
+  template <>
+  struct hash<seevve::http::HttpStatusCode>
+  {
+    std::size_t operator()(const seevve::http::HttpStatusCode& k) const
+    {
+			return std::hash<int>()(static_cast<int>(k));
+    }
+  };
+}
 
 namespace seevve
 {
@@ -10,7 +22,7 @@ namespace http
 {
   const std::string& statusString(const HttpStatusCode code)
   {
-    using StatusStringStorage = std::map<HttpStatusCode, std::string>;
+    using StatusStringStorage = std::unordered_map<HttpStatusCode, std::string>;
     static const StatusStringStorage Storage = {
       // 1xx: Informational
       { Continue, "Continue" },
@@ -89,7 +101,7 @@ namespace http
     };
 
     const StatusStringStorage::const_iterator it = Storage.find(code);
-    if (it != Storage.end())
+    if (it == Storage.end())
     {
       std::ostringstream oss;
       oss << "Value \"" << code << "\" is unknown HTTP status code";
